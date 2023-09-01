@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 2</title>
+    <!-- tailwindcss CDN  -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <header class="sticky top-0 left-0 w-full bg-white">
+        <div class="flex justify-between items-center container mx-auto p-4 2xl:px-24">
+            <h1 class="font-bold capitalize">dashboard</h1>
+            <div class="flex items-center gap-3">
+                <a href="/" class="px-4 py-2 rounded-md bg-blue-400 text-white font-semibold hover:bg-blue-500">Task 1
+                </a>
+                <button class="px-4 py-2 rounded-md bg-blue-400 text-white font-semibold hover:bg-blue-500">log
+                    in</button>
+            </div>
+        </div>
+    </header>
+    <section
+        class="container  mx-auto bg-black w-full min-h-screen p-4 md:py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 2xl:px-24"
+        id="hero"></section>
+
+    <div>
+
+    </div>
+    <script>
+        // fetch a data from server side to client side using coingecko api--> (xml http method)
+        const API = 'https://api.coingecko.com/api/v3/search/trending'
+        const http = new XMLHttpRequest()
+        http.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                // converting json object into parse 
+                let response = JSON.parse(http.response)
+                // console.log(response.coins[0].item);
+                let card = `<img src="https://figmaelements.com/wp-content/uploads/2020/11/figma-admin-dashboard-ui-kit.jpg" alt="image" class="object-cover w-full h-full rounded-[15px]"/>`
+                response.coins.forEach(element => {
+                    card += `
+                    <div class="card max-w-3xl p-4 rounded-[15px] bg-[#202020]">
+                        <div class="flex justify-between items-center">
+                            <div class="w-[50px] h-[50px]"><img src=${element.item.large} alt="image" class="object-contain"></div>
+                            <p class="text-slate-400 bg-[#2F2F2F] hover:bg-[#2F2F2F]/75 px-4 py-1 rounded-full"><small>758+ <span class="text-green-500">&#8593;</span></small></p>
+                        </div>
+                        <div class="flex justify-between items-start text-white py-3">
+                            <h1 class="text-2xl font-bold">${element.item.name}</h1>
+                            <div class="flex flex-col gap-2">
+                                <p class="text-slate-100">Market Rank :${element.item.market_cap_rank}</p>
+                                <p class="text-slate-100">Coin Id :${element.item.coin_id} </p>
+                                <p class="text-slate-100">Symbol : ${element.item.symbol}</p>
+                            </div>
+                        </div>
+                        <div class="text-white font-semibold text-md md:text-xl flex flex-wrap justify-center gap-2 md:justify-between items-center py-3 border-t border-slate-100/25">
+                            <p>Price :</p>
+                            <p class="text-green-800 bg-green-200 md:px-4 md:py-1 px-2 py-1 rounded-full">${element.item.price_btc} &#8593</p>
+                        </div>
+                        <div class="py-2"><button class="ms-auto text-red-500 block" onclick="openPriceDetails(event,'${element.item.id}')">Check Historical price?</button></div>
+
+
+
+                        <section class="pt-6 border-t hidden checkPriceDetails" >
+                            <form class="flex flex-col gap-4 max-w-md mx-auto">
+                        <select name="currency" id="currency" class="p-2 border w-auto rounded" onchange="getCurrencyValue(event)">
+                            <option value="null" selected disabled>---Select currency----</option>
+                            <option value="usd">usd</option>
+                            <option value="vef">vef</option>
+                            <option value="xag">xag</option>
+                            <option value="zar">zar</option>
+                        </select>
+                        <div class="flex items-center gap-5 text-white font-medium overflow-x-auto">
+                            <div>
+                                From :
+                                <input type="date" class="border p-2 rounded text-black" id="fromDate" onchange="getFromDate(event)">
+                            </div>
+                            <div>
+                                To :
+                                <input type="date" class="border p-2 rounded text-black" id="toDate" onchange="getToDate(event)">
+                            </div>
+                        </div>
+                        <div><button class="px-4 py-2 bg-green-400 hover:bg-green-500 text-white text-md rounded-[8px] w-full" onclick="fetchHistoricPriceData(event,'${element.item.id}' ,'${element.item.name}')">check</button></div>
+                    </form>
+                    <div id="showPriceDetails"></div>
+                    
+                        </section>
+                    </div>`
+
+
+                    document.querySelector("#hero").innerHTML = card
+                });
+
+            }
+        }
+        http.open("GET", API);
+        http.send();
+
+        function openPriceDetails(event,cardName){
+            // const checkPriceDetailsElms =document.querySelectorAll(".checkPriceDetails")
+            console.log(event.target.parentElement.parentElement.children[4]);
+            event.target.parentElement.parentElement.children[4].classList="block"
+            // checkPriceDetailsElms.forEach(()=>{
+            //     if(data == index){
+            //         console.log("match");
+            //     }
+            // })
+            // if(document.querySelector("#checkPriceDetails").classList == "hidden"){
+            // }
+        }
+
+
+        // static API query values 
+        apiQuery = {
+            currency: "joe",
+            fromDate: "4552631012",
+            toDate: "174526364",
+        }
+        // static historic price value  
+        historicPriceData = {
+            min: 1111111,
+            max: 1111111,
+            average: 11111111
+        }
+
+        // function to get from date  
+        function getFromDate(event) {
+            // converting date into time (millisecond) and set  apiQuery value
+            this.apiQuery.fromDate = new Date(event.target.value).getTime().toString().slice(0, 10)
+        }
+        // function to get To date  
+        function getToDate(event) {
+            // converting date into time (millisecond) and set  apiQuery value
+            this.apiQuery.toDate = new Date(event.target.value).getTime().toString().slice(0, 10)
+        }
+        // function to get currency value 
+        function getCurrencyValue(event) {
+            // getting currency value from user and set to apiQuery currency
+            this.apiQuery.currency = event.target.value
+        }
+
+        // Main function 
+        function fetchHistoricPriceData(event, coinId, coinName) {
+            event.preventDefault()
+            const http = new XMLHttpRequest();
+            // onload 
+            http.onload = () => {
+
+                try {
+                    // api response 
+                    let response = JSON.parse(http.response);
+                    // setting updated historic price  min, max, average value
+                    this.historicPriceData.min = Math.min.apply(null, response.prices[0])
+                    this.historicPriceData.max = Math.max.apply(null, response.prices[0])
+                    this.historicPriceData.average = (response.prices[0][0] + response.prices[0][1]) % 2
+                    // selecting all card element 
+                    const cardElm = document.querySelectorAll(".card")
+                    cardElm.forEach((data, index) => {
+                        // updating value for selected card through if condition
+                        if (data.children[1].children[0].innerHTML == coinName) {
+                            console.log("match");
+                            console.log(data.children[4].children[1]);
+                            data.children[4].children[1].innerHTML = `
+                <ul class="text-white pt-2" >
+                        <li class="flex justify-between items-center py-2">Maximum Price : <span class="font-medium underline">${historicPriceData.min}</span></li>
+                        <li class="flex justify-between items-center py-2">Minimum Price : <span class="font-medium underline">${historicPriceData.max}</span></li>
+                        <li class="flex justify-between items-center py-2">Average Price : <span class="font-medium underline">${historicPriceData.average}</span></li>
+                    </ul>`
+                        }
+                    })
+                }
+                //  error handel 
+                catch (error) {
+                    console.log(error);
+                    alert("Please enter a valid details")
+                }
+
+
+            }
+            // API to get the historic price details
+            const API = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart/range?vs_currency=${this.apiQuery.currency}&from=${this.apiQuery.fromDate}&to=${this.apiQuery.toDate}`
+            console.log(API);
+            http.open("GET", API)
+            http.send()
+
+
+        }
+
+
+    </script>
+</body>
+
+</html>
+
+<!-- https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1693185288&to=1693271688 
+
+
+Math.min.apply(null, arr)-->

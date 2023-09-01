@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dashboard</title>
+    <!-- tailwindcss CDN  -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <header class="sticky top-0 left-0 w-full bg-white">
+        <div class="flex justify-between items-center container mx-auto p-4 2xl:px-24">
+            <h1 class="font-bold capitalize">dashboard</h1>
+            <div class="flex items-center gap-3">
+                <a href="/task2" class="px-4 py-2 rounded-md bg-blue-400 text-white font-semibold hover:bg-blue-500">Task 2
+                    </a>
+                <button class="px-4 py-2 rounded-md bg-blue-400 text-white font-semibold hover:bg-blue-500">log
+                    in</button>
+            </div>
+        </div>
+    </header>
+    <div id="hero"
+        class="container mx-auto bg-black w-full min-h-screen p-4 md:py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 2xl:px-24">
+    </div>
+    <!-- popup price input form -->
+    <div id="popup" class="bg-black/50 w-full h-[100vh] fixed top-0 left-0 flex justify-center items-center invisible">
+        <div class="bg-white p-8 py-16 rounded-md max-w-3xl w-full text-center">
+            <h1 class="py-4">Admin can only update the price</h1>
+            <form>
+                <input type="text" name="price" placeholder="Enter a price" class="border p-4 w-full rounded-md"
+                    onchange="getPrice(event)">
+                <div><button class="block ms-auto bg-green-500 text-white px-4 py-2 rounded-md my-4"
+                        onclick="updatePrice(event)">Update</button></div>
+            </form>
+        </div>
+    </div>
+    <script>
+
+        // fetch a data from server side to client side using coingecko api--> (xml http method)
+        const API = 'https://api.coingecko.com/api/v3/search/trending'
+        const http = new XMLHttpRequest()
+        http.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                // converting json object into parse 
+                let response = JSON.parse(http.response)
+                // console.log(response.coins[0].item);
+                let card = `<h1 class="text-center text-white flex justify-center items-center">Admin DashBoard</h1>`
+                response.coins.forEach(element => {
+                    console.log(element.item);
+
+                    card += `
+                    <div class="card max-w-3xl p-4 rounded-[15px] bg-[#202020]">
+                        <div class="flex justify-between items-center">
+                            <div class="w-[50px] h-[50px]"><img src=${element.item.large} alt="image" class="object-contain"></div>
+                            <p class="text-slate-400 bg-[#2F2F2F] hover:bg-[#2F2F2F]/75 px-4 py-1 rounded-full"><small>758+ <span class="text-green-500">&#8593;</span></small></p>
+                        </div>
+                        <div class="flex justify-between items-start text-white py-3">
+                            <h1 class="text-2xl font-bold">${element.item.name}</h1>
+                            <div class="flex flex-col gap-2">
+                                <p class="text-slate-100">Market Rank :${element.item.market_cap_rank}</p>
+                                <p class="text-slate-100">Coin Id :${element.item.coin_id} </p>
+                                <p class="text-slate-100">Symbol : ${element.item.symbol}</p>
+                            </div>
+                        </div>
+                        <div class="text-white font-semibold text-md md:text-xl flex flex-wrap justify-center gap-2 md:justify-between items-center py-3 border-t border-slate-100/25">
+                            <p>Price :</p>
+                            <p class="text-green-800 bg-green-200 md:px-4 md:py-1 px-2 py-1 rounded-full">${element.item.price_btc} &#8593</p>
+                        </div>
+                        <div ><button class="ms-auto text-blue-500 block" onclick="popup()">Update price?</button></div>
+                    </div>`
+
+
+                    document.querySelector("#hero").innerHTML = card
+                });
+
+            }
+        }
+        http.open("GET", API);
+        http.send();
+
+        // connecting to WebSocket server
+        const ws = new WebSocket("ws://localhost:8000")
+        ws.addEventListener('open', (event) => {
+            console.log("server open!")
+        })
+        // receiving data from server 
+        ws.addEventListener("message", (event) => {
+            alert("message from server : " + event.data);
+        })
+        // store user  price value
+        price = {
+            value: 455,
+        }
+        // getting user input value  
+        function getPrice(e) {
+            console.log(e.target.value);
+            this.price.value = e.target.value
+        }
+        // sending updated price data to the server 
+        function updatePrice(event) {
+            event.preventDefault()
+            ws.send(price.value)
+            document.querySelector("#popup").classList.add("invisible")
+        }
+
+        // setTimeout(() => {
+        //     updatePrice()
+        // }, 5000)
+
+        // popup window 
+        function popup() {
+            document.querySelector("#popup").classList.remove("invisible")
+        }
+
+    </script>
+</body>
+
+</html>
